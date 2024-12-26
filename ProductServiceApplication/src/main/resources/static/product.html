@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fc;
+            padding-top: 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .card-custom {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .product-card {
+            border: none;
+            box-shadow: none;
+            background-color: #fff;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .btn-add-to-cart {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn-add-to-cart:hover {
+            background-color: #218838;
+        }
+
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .cart-summary {
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .order-btn {
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .order-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .inventory-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .inventory-item {
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .inventory-item.available {
+            background-color: #d4edda;
+        }
+
+        .inventory-item.out-of-stock {
+            background-color: #f8d7da;
+        }
+
+        .customer-form input,
+        .customer-form textarea {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .customer-form label {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .customer-form button {
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .customer-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--<div class="container">
+         Customer Section 
+        <div class="section-header">Customer Information</div>
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card card-custom">
+                    <div class="card-body">
+                        <form class="customer-form" id="customerForm">
+                            <label for="customerName">Name</label>
+                            <input type="text" id="customerName" placeholder="Enter your name" required>
+
+                            <label for="customerEmail">Email</label>
+                            <input type="email" id="customerEmail" placeholder="Enter your email" required>
+
+                            <label for="customerAddress">Address</label>
+                            <textarea id="customerAddress" rows="4" placeholder="Enter your address" required></textarea>
+
+                            <button type="submit">Submit Information</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+-->
+        <!-- Product Section -->
+        <div class="section-header">Products</div>
+        <div class="row" id="productSection">
+            <!-- Product cards will be loaded here dynamically via AJAX -->
+			
+			<button class="order-btn" id="placeOrderBtn">Add to cart</button>
+        </div>
+
+        <!-- Cart Section -->
+        <div class="section-header">Shopping Cart</div>
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card cart-summary" id="cartSummary">
+                    <!-- Cart summary will be updated here dynamically -->
+                    <div class="d-flex justify-content-between">
+                        <p>Subtotal</p>
+                        <p>$0.00</p>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <p>Shipping</p>
+                        <p>$5.00</p>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <p class="total"><strong>Total</strong></p>
+                        <p class="total"><strong>$5.00</strong></p>
+                    </div>
+                    <button class="order-btn" id="placeOrderBtn">Place Order</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="section-header">Inventory</div>
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <ul class="inventory-list" id="inventoryList">
+                    <!-- Inventory items will be loaded here dynamically via AJAX -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Order Section -->
+        <div class="section-header">Order Summary</div>
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card cart-summary" id="orderSummary">
+                    <!-- Order summary will be updated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<script>
+	    $(document).ready(function () {
+	        // Load products via AJAX
+	        function loadProducts() {
+	            $.ajax({
+	                url: '/product/products',
+	                method: 'GET',
+	                success: function (data) {
+	                    $('#productSection').empty();
+	                    data.forEach(function (product) {
+	                        const productCard = `
+	                            <div class="col-md-4">
+	                                <div class="card product-card" data-id="${product.id}">
+	                                    <img src="https://via.placeholder.com/250x180" alt="${product.name}">
+	                                    <div class="product-info">
+	                                        <h5>${product.name}</h5>
+	                                        <p>$${product.price}</p>
+	                                        <button class="btn-add-to-cart" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Add to Cart</button>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                        `;
+	                        $('#productSection').append(productCard);
+	                    });
+	                }
+	            });
+	        }
+	
+	        // Load inventory status via AJAX
+	        function loadInventory() {
+	            $.ajax({
+	                url: '/inventory/products',
+	                method: 'GET',
+	                success: function (data) {
+	                    $('#inventoryList').empty();
+	                    data.forEach(function (inventory) {
+	                        const inventoryItem = `
+	                            <li class="inventory-item ${inventory.quantity > 0 ? 'available' : 'out-of-stock'}">
+	                                <strong>Product ${inventory.productId}</strong> - ${inventory.quantity > 0 ? 'Available' : 'Out of Stock'}
+	                            </li>
+	                        `;
+	                        $('#inventoryList').append(inventoryItem);
+	                    });
+	                }
+	            });
+	        }
+	
+	        // Add item to cart via AJAX
+	        function addToCart(productId, productName, productPrice) {
+	            // Send AJAX request to add the product to the cart
+	            $.ajax({
+	                url: 'http://localhost:8080/cart',
+	                method: 'POST',
+	                contentType: 'application/json',
+	                data: JSON.stringify({
+	                    productId: productId,
+	                    quantity: 1,  // Adding 1 item per request
+	                }),
+	                success: function (data) {
+	                    alert(`${productName} added to cart!`);
+	                    updateCartSummary();  // Update the cart summary after adding
+	                },
+	                error: function () {
+	                    alert("There was an error adding the product to the cart.");
+	                }
+	            });
+	        }
+	
+	        // Update cart summary via AJAX
+	        function updateCartSummary() {
+	            $.ajax({
+	                url: '/cart',
+	                method: 'GET',
+	                success: function (data) {
+	                    let total = 0;
+	                    // Assuming cart items contain price and quantity for calculation
+	                    data.forEach(function (cartItem) {
+	                        total += cartItem.product.price * cartItem.quantity;
+	                    });
+	                    $('#cartSummary').find('.total').text('$' + total.toFixed(2));
+	                },
+	                error: function () {
+	                    alert("There was an error retrieving the cart summary.");
+	                }
+	            });
+	        }
+	
+	        // Place order via AJAX
+	        $('#placeOrderBtn').click(function () {
+	            $.ajax({
+	                url: '/order',
+	                method: 'POST',
+	                contentType: 'application/json',
+	                data: JSON.stringify({
+	                    customerId: 1, // Replace with actual customer ID from your form or session
+	                    totalAmount: 100 // Replace with calculated cart total
+	                }),
+	                success: function () {
+	                    alert('Order placed successfully!');
+	                },
+	                error: function () {
+	                    alert("There was an error placing the order.");
+	                }
+	            });
+	        });
+	
+	        // Initialize the page
+	        loadProducts();
+	        loadInventory();
+	    });
+	</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

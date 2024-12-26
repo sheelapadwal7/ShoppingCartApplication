@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Orders</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/orders">Orders</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/customer">Customer</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="text-center my-4">Your Orders</h1>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Products</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="order-list">
+                <!-- Orders will be dynamically injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var orders = [
+                { id: 1, products: "Laptop, Smartphone", total: 2000, status: "Shipped" },
+                { id: 2, products: "Headphones", total: 150, status: "Delivered" }
+            ];
+
+            function renderOrders(orders) {
+                var orderList = $('#order-list');
+                orderList.empty();
+                orders.forEach(function (order) {
+                    var row = `
+                        <tr>
+                            <td>${order.id}</td>
+                            <td>${order.products}</td>
+                            <td>$${order.total}</td>
+                            <td>${order.status}</td>
+                        </tr>
+                    `;
+                    orderList.append(row);
+                });
+            }
+
+            renderOrders(orders);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Custom Styles */
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .disabled-btn {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .product-card-body {
+            padding: 1.5rem;
+        }
+
+        .product-card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .auth-btns a {
+            transition: all 0.3s ease;
+        }
+
+        .auth-btns a:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        /* Cart Image with Badge */
+        .cart-container {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-img {
+            width: 50px;
+            cursor: pointer;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        /* Adjust navbar layout */
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .auth-btns {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .auth-btns a {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">Shopping Cart</a>
+        <div class="auth-btns" id="authButtons">
+            <a href="login.html" class="btn btn-outline-light" id="loginBtn">Login</a>
+            <a href="register.html" class="btn btn-outline-light ms-2" id="registerBtn">Register</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Cart Image with Badge placed at the top-right of the page -->
+<div class="cart-container">
+    <!-- Ensure that this is the correct image URL for the cart -->
+    <img src="/images/cart.jpg" class="cart-img" id="cartImage" onclick="window.location.href='cart.html'">
+    <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+</div>
+
+<!-- Scrolling Images (Carousel) -->
+<div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="https://via.placeholder.com/1500x500/ff7f7f/333333?text=Sale+on+Products" class="d-block w-100" alt="...">
+        </div>
+        <div class="carousel-item">
+            <img src="https://via.placeholder.com/1500x500/7f7fff/333333?text=Big+Discounts+on+Electronics" class="d-block w-100" alt="...">
+        </div>
+        <div class="carousel-item">
+            <img src="https://via.placeholder.com/1500x500/7fff7f/333333?text=Limited+Time+Offer" class="d-block w-100" alt="...">
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- Products Section -->
+<div class="container mt-5 pt-5">
+    <h3>Products</h3>
+    <div class="row" id="productList">
+        <!-- Product cards will be loaded here dynamically -->
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
+    // Check if the user is logged in
+    function checkLoginStatus() {
+        if (loggedInUser) {
+            $("#loginBtn").text("Logout").attr("href", "#").click(function () {
+                localStorage.removeItem("loggedInUser"); // Log out
+                window.location.reload();
+            });
+            // Disable the Register button if the user is logged in
+            $("#registerBtn").addClass("disabled-btn").attr("href", "#").text("Registered");
+        } else {
+            $("#authButtons").html('<a href="login.html" class="btn btn-outline-light" id="loginBtn">Login</a>' +
+                                    '<a href="register.html" class="btn btn-outline-light ms-2" id="registerBtn">Register</a>');
+        }
+    }
+
+    // Load products from the API
+    function loadProducts() {
+        $.ajax({
+            url: 'http://localhost:8080/product/products',  // API endpoint for fetching products
+            type: 'GET',
+            success: function(products) {
+                let productHtml = '';
+                products.forEach(function(product) {
+                    productHtml += `
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <img src="${product.imageUrl}" class="card-img-top img" alt="${product.name}">
+                                <div class="card-body product-card-body">
+                                    <h5 class="card-title product-card-title">${product.name}</h5>
+                                    <p class="card-text product-price">Rs. ${product.price}</p>
+                                    <input type="number" id="quantity${product.id}" class="form-control mb-3" value="1" min="1" max="10">
+                                    ${loggedInUser ? `<button class="btn btn-primary" onclick="addToCart(${product.id}, ${product.price}, '${product.name}', '${product.imageUrl}')">Add to Cart</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#productList').html(productHtml);
+            },
+            error: function() {
+                alert('Failed to load products.');
+            }
+        });
+    }
+
+    // Add product to cart and save to both localStorage and database
+    function addToCart(productId, price, name, imageUrl) {
+        if (!loggedInUser) {
+            alert('Please log in first');
+            return;
+        }
+
+        const quantity = parseInt($(`#quantity${productId}`).val(), 10);  // Get the quantity selected by the user
+
+        // Get the cart from localStorage, or create a new one if it doesn't exist
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        // Check if the product is already in the cart
+        const existingProductIndex = cart.findIndex(item => item.productId === productId);
+        if (existingProductIndex !== -1) {
+            // If the product is already in the cart, update the quantity
+            cart[existingProductIndex].quantity += quantity;
+        } else {
+            // If the product is not in the cart, add it
+            cart.push({
+                productId: productId,
+                quantity: quantity,
+                name: name,
+                price: price,
+                imageUrl: imageUrl,
+            });
+        }
+
+        // Save the updated cart back to localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        // Update the cart badge with the number of items
+        updateCartBadge();
+    }
+
+    // Update cart badge based on items in the cart
+    function updateCartBadge() {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalItems > 0) {
+            $("#cartBadge").text(totalItems).show();
+        } else {
+            $("#cartBadge").hide();
+        }
+    }
+
+    // Load products and check login status
+    $(document).ready(function() {
+        checkLoginStatus();
+        loadProducts();
+        updateCartBadge(); // Update cart badge on page load
+    });
+</script>
+
+</body>
+</html>

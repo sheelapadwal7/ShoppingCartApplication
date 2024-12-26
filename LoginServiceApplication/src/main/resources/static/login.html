@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Shopping Cart</a>
+</nav>
+
+<div class="container mt-5">
+    <h3>Login</h3>
+    <form id="loginForm">
+        <div class="mb-3">
+            <label for="loginUsername" class="form-label">Username</label>
+            <input type="text" class="form-control" id="loginUsername" required>
+            <div id="usernameError" class="text-danger mt-2" style="display:none;">Please enter a valid username.</div>
+        </div>
+        <div class="mb-3">
+            <label for="loginPassword" class="form-label">Password</label>
+            <input type="password" class="form-control" id="loginPassword" required>
+            <div id="passwordError" class="text-danger mt-2" style="display:none;">Password must be at least 6 characters long.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+        <a href="register.html" class="btn btn-secondary ms-2">Don't have an account? Register</a>
+    </form>
+</div>
+
+<!-- JavaScript -->
+
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Handle login form submission
+    $('#loginForm').on('submit', function(e) {
+        e.preventDefault();  // Prevent the form from reloading the page
+
+        const username = $('#loginUsername').val();
+        const password = $('#loginPassword').val();
+
+        // Send login credentials to the API using URL parameters (RequestParam)
+        $.ajax({
+            url: `http://localhost:8080/auth/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,  // Sending as URL params
+            type: 'POST',  // POST method
+            success: function(response) {
+                if (response && response.username) {
+                    // Store user data in localStorage (or sessionStorage for session-based storage)
+                    localStorage.setItem('loggedInUser', JSON.stringify(response));
+
+                    // Redirect to homepage (index.html)
+                    window.location.href = "index.html";
+                } else {
+                    alert("Invalid username or password.");
+                }
+            },
+            error: function() {
+                alert("Login failed. Please try again.");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

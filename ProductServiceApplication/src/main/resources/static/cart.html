@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Shopping Cart</a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#products">Products</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#order">Order</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Cart Items -->
+<div class="container my-4" id="cart-items">
+    <!-- Cart items will be displayed here -->
+</div>
+
+<!-- Checkout Button -->
+<div class="container text-center">
+    <button class="btn btn-danger" onclick="removeFromCart()">Remove All</button>
+    <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        loadCart();
+
+        // Load cart items
+        function loadCart() {
+            $.get("/cart", function (data) {
+                var cartHtml = '';
+                data.forEach(function (item) {
+                    cartHtml += `
+                        <div class="card mb-3">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img src="${item.product.imageUrl}" class="img-fluid rounded-start" alt="${item.product.name}">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${item.product.name}</h5>
+                                        <p class="card-text">Price: $${item.product.price}</p>
+                                        <p class="card-text">Quantity: ${item.quantity}</p>
+                                        <button class="btn btn-warning" onclick="removeFromCart(${item.id})">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                $('#cart-items').html(cartHtml);
+            });
+        }
+
+        // Remove item from cart
+        window.removeFromCart = function (itemId) {
+            alert("Removed item from cart: " + itemId);
+            loadCart(); // Reload the cart after removal
+        };
+
+        // Place order
+        window.placeOrder = function () {
+            alert("Order placed successfully!");
+        };
+    });
+</script>
+
+</body>
+</html>

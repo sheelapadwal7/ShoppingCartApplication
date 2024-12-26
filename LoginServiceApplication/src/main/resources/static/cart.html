@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .img { width: 100%; height: 200px; object-fit: cover; }
+        .disabled-btn { pointer-events: none; opacity: 0.5; }
+        .disabled-input { pointer-events: none; background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Shopping Cart</a>
+    <div class="ms-auto" id="authButtons">
+        <a href="login.html" class="btn btn-outline-light" id="loginBtn">Login</a>
+        <a href="register.html" class="btn btn-outline-light ms-2" id="registerBtn">Register</a>
+    </div>
+</nav>
+
+<!-- Cart Section -->
+<div class="container mt-5" id="cartSection">
+    <h3>Your Cart</h3>
+    <div class="row" id="cartList">
+        <!-- Cart items will be dynamically loaded here -->
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <h4>Total Price: $<span id="totalPrice">0.00</span></h4>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addressModal">Enter Address</button>
+        </div>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addressModalLabel">Enter Shipping Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="addressInput" class="form-label">Address</label>
+                    <textarea class="form-control" id="addressInput" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="cityInput" class="form-label">City</label>
+                    <input type="text" class="form-control" id="cityInput">
+                </div>
+                <div class="mb-3">
+                    <label for="zipInput" class="form-label">ZIP Code</label>
+                    <input type="text" class="form-control" id="zipInput">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderSuccessModalLabel">Order Placed Successfully</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Your order has been placed successfully. Thank you for shopping with us!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
+    // Check if the user is logged in
+    function checkLoginStatus() {
+        if (loggedInUser) {
+            $("#loginBtn").text("Logout").attr("href", "#").click(function () {
+                localStorage.removeItem("loggedInUser"); // Log out
+                window.location.reload();
+            });
+            // Disable the Register button if the user is logged in
+            $("#registerBtn").addClass("disabled-btn").attr("href", "#").text("Registered");
+        } else {
+            $("#authButtons").html('<a href="login.html" class="btn btn-outline-light" id="loginBtn">Login</a>' +
+                                    '<a href="register.html" class="btn btn-outline-light ms-2" id="registerBtn">Register</a>');
+        }
+    }
+
+    // Fetch inventory details for a product
+    function fetchInventory(productId, callback) {
+        $.ajax({
+            url: `http://localhost:8080/inventory/products/${productId}`,  // Get inventory from InventoryController
+            type: 'GET',
+            success: function(response) {
+                callback(response);
+            },
+            error: function(xhr, status, error) {
+                alert(`Failed to fetch inventory: ${xhr.responseText}`);
+                callback(null);
+            }
+        });
+    }
+
+    // Load cart items from localStorage
+    function loadCart() {
+        if (!loggedInUser) {
+            alert('Please log in first');
+            return;
+        }
+
+        // Get cart items from localStorage
+        const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+
+        let cartHtml = '';
+        let totalPrice = 0;
+        
+        if (cartItems.length > 0) {
+            let loadedItems = 0;
+
+            cartItems.forEach(function(item, index) {
+                fetchInventory(item.productId, function(inventory) {
+                    if (inventory) {
+                        cartHtml += `
+                            <div class="col-md-4 cart-item" data-productId="${item.productId}" data-quantity="${item.quantity}">
+                                <div class="card">
+                                    <img src="${item.imageUrl}" class="card-img-top img" alt="${item.name}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${item.name}</h5>
+                                        <p class="card-text">Quantity: ${item.quantity}</p>
+                                        <p class="card-text">Price: RS.${item.price}</p>
+                                        <p class="card-text">In Stock: ${inventory.quantity}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        totalPrice += item.price * item.quantity;
+                    }
+
+                    loadedItems++;
+                    if (loadedItems === cartItems.length) {
+                        $('#cartList').html(cartHtml);
+                        $('#totalPrice').text(totalPrice.toFixed(2));
+                    }
+                });
+            });
+        } else {
+            $('#cartList').html('<p>Your cart is empty.</p>');
+        }
+    }
+
+    // Place the order
+    function placeOrder() {
+        if (!loggedInUser) {
+            alert('Please log in first');
+            return;
+        }
+
+        const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+
+        if (cartItems.length === 0) {
+            alert('Your cart is empty.');
+            return;
+        }
+
+        // Check product availability before placing the order
+        let allItemsAvailable = true;
+
+        cartItems.forEach(function(item) {
+            fetchInventory(item.productId, function(inventory) {
+                if (inventory && item.quantity > inventory.quantity) {
+                    allItemsAvailable = false;
+                    alert(`Insufficient stock for product: ${item.name}. Available: ${inventory.quantity}`);
+                    return false;
+                }
+            });
+        });
+
+        // Proceed if all items are available
+        if (allItemsAvailable) {
+            const productIds = cartItems.map(item => item.productId).join(',');
+            const address = $('#addressInput').val();
+            const city = $('#cityInput').val();
+            const zip = $('#zipInput').val();
+
+            if (!address || !city || !zip) {
+                alert('Please provide a valid shipping address.');
+                return;
+            }
+
+            // Send the request to place the order
+            $.ajax({
+                url: `http://localhost:8080/order/place?userId=${loggedInUser.id}&productIds=${productIds}&addressLine=${address}&city=${city}&zipCode=${zip}`,
+                type: 'POST',
+                success: function(response) {
+					
+					// Reduce inventory for each item in the cart
+					                    cartItems.forEach(function(item) {
+					                        $.ajax({
+					                            url: `http://localhost:8080/inventory/reduce/${item.productId}`,
+					                            type: 'POST',
+					                            data: { quantity: item.quantity },
+					                            success: function() {
+					                                console.log(`Inventory reduced for product: ${item.name}`);
+					                            },
+					                            error: function(xhr) {
+					                                console.log(`Failed to reduce inventory for product: ${item.name}`);
+					                            }
+					                        });
+					                    });
+										$('#addressModal').modal('hide');
+										
+										                 
+
+                    // Show success modal
+                    $('#orderSuccessModal').modal('show');
+                    // Clear the cart after the order is placed
+                    localStorage.removeItem("cart");
+                    loadCart();  // Reload the cart to show the empty cart message
+                },
+                error: function(xhr, status, error) {
+                    alert(`Failed to place the order: ${xhr.responseText}`);
+                }
+            });
+        }
+    }
+
+    // Load cart and check login status
+    $(document).ready(function() {
+        checkLoginStatus();
+        loadCart();
+    });
+</script>
+
+</body>
+</html>

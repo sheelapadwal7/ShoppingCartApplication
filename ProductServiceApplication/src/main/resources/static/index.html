@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Shopping Cart</a>
+</nav>
+
+<div class="container my-4">
+    <div class="row">
+        <!-- Register Form -->
+        <div class="col-md-6">
+            <h3>Register</h3>
+            <form id="registerForm">
+                <div class="mb-3">
+                    <label for="registerUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="registerUsername">
+                </div>
+                <div class="mb-3">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="registerPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="registerEmail">
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+        </div>
+
+        <!-- Login Form -->
+        <div class="col-md-6">
+            <h3>Login</h3>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="loginUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="loginUsername">
+                </div>
+                <div class="mb-3">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="loginPassword">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Register functionality
+    $('#registerForm').on('submit', function(e) {
+        e.preventDefault();
+        let username = $('#registerUsername').val();
+        let password = $('#registerPassword').val();
+        let email = $('#registerEmail').val();
+
+        $.post('/auth/register', { username, password, email }, function(response) {
+            alert('Registration Successful');
+        });
+    });
+
+    // Login functionality
+    $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        let username = $('#loginUsername').val();
+        let password = $('#loginPassword').val();
+
+        $.post('/auth/login', { username, password }, function(response) {
+            if(response) {
+                alert('Login Successful');
+                loadProducts();
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+    });
+
+    // Load products
+    function loadProducts() {
+        $.get('/product/all', function(products) {
+            let productHtml = '';
+            products.forEach(function(product) {
+                productHtml += `
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img src="${product.imageUrl}" class="card-img-top" alt="${product.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text">${product.description}</p>
+                                <p class="card-text">Price: $${product.price}</p>
+                                <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#productList').html(productHtml);
+        });
+    }
+
+    // Add product to cart
+    function addToCart(productId) {
+        $.post(`/cart/add?productId=${productId}`, function(response) {
+            alert('Product added to cart');
+        });
+    }
+</script>
+</body>
+</html>

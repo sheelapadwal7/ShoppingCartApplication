@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Shopping Cart</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/products">Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">Cart <span id="cart-count">0</span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="text-center my-4">Products</h1>
+
+        <div class="row" id="product-list">
+            <!-- Product cards will be dynamically injected here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Sample products data
+            var products = [
+                { id: 1, name: "Laptop", price: 1200, imageUrl: "/images/laptop.jpg" },
+                { id: 2, name: "Smartphone", price: 800, imageUrl: "/images/smartphone.jpg" },
+                { id: 3, name: "Headphones", price: 150, imageUrl: "/images/headphones.jpg" }
+            ];
+
+            // Function to render products
+            function renderProducts(products) {
+                var productList = $('#product-list');
+                productList.empty();
+                products.forEach(function (product) {
+                    var productCard = `
+                        <div class="col-md-4">
+                            <div class="card">
+                                <img class="card-img-top" src="${product.imageUrl}" alt="${product.name}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${product.name}</h5>
+                                    <p class="card-text">$${product.price}</p>
+                                    <button class="btn btn-primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    productList.append(productCard);
+                });
+            }
+
+            // Render products
+            renderProducts(products);
+
+            // Add to cart functionality
+            $('.add-to-cart').click(function () {
+                var productId = $(this).data('id');
+                var productName = $(this).data('name');
+                var productPrice = $(this).data('price');
+
+                // Update cart count
+                var cartCount = parseInt($('#cart-count').text()) + 1;
+                $('#cart-count').text(cartCount);
+
+                // Optionally, use AJAX to store cart data on the server here
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Shopping Cart</a>
+</nav>
+
+<div class="container mt-5">
+
+    <!-- Register Form -->
+    <div id="registerSection">
+        <h3>Register</h3>
+        <form id="registerForm">
+            <div class="mb-3">
+                <label for="registerUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="registerUsername" required>
+            </div>
+            <div class="mb-3">
+                <label for="registerPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="registerPassword" required>
+            </div>
+            <div class="mb-3">
+                <label for="registerEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="registerEmail" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginSection" class="mt-5" style="display: none;">
+        <h3>Login</h3>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="loginUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="loginUsername" required>
+            </div>
+            <div class="mb-3">
+                <label for="loginPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Products Section (After Login) -->
+    <div id="productsSection" class="mt-5" style="display: none;">
+        <h3>Products</h3>
+        <div class="row" id="productList"></div>
+
+        <!-- Cart Section -->
+        <h4>Your Cart</h4>
+        <div id="cartSection">
+            <!-- Cart items will appear here -->
+        </div>
+
+        <!-- Order Button -->
+        <button id="placeOrderButton" class="btn btn-success mt-3">Place Order</button>
+    </div>
+
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    let loggedInUser = null;
+    let cart = [];
+
+    // Register functionality
+    $('#registerForm').on('submit', function (e) {
+        e.preventDefault();
+        const username = $('#registerUsername').val();
+        const password = $('#registerPassword').val();
+        const email = $('#registerEmail').val();
+
+        const user = { username, password, email };
+        
+        $.ajax({
+            url: '/auth/register',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(user),
+            success: function (response) {
+                alert('Registration successful! Please log in.');
+                $('#registerSection').hide();
+                $('#loginSection').show();
+                $('#registerForm')[0].reset(); // Reset register form
+            },
+            error: function (error) {
+                alert('Registration failed. Please try again.');
+            }
+        });
+    });
+
+    // Login functionality
+    $('#loginForm').on('submit', function (e) {
+        e.preventDefault();
+        const username = $('#loginUsername').val();
+        const password = $('#loginPassword').val();
+
+        $.post('/auth/login', { username, password }, function (response) {
+            if (response) {
+                loggedInUser = response;
+                $('#loginSection').hide();
+                $('#productsSection').show();
+                loadProducts();
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+    });
+
+    // Load products
+    function loadProducts() {
+        $.get('http://localhost:8080/product/products', function (products) {
+            let productHtml = '';
+            products.forEach(function (product) {
+                productHtml += `
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img src="${product.imageUrl}" class="card-img-top" alt="${product.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="card-text">${product.description}</p>
+                                <p class="card-text">Price: $${product.price}</p>
+                                <button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#productList').html(productHtml);
+        });
+    }
+
+    // Add product to cart
+    function addToCart(productId) {
+        const product = { productId, quantity: 1 };
+        cart.push(product);
+        updateCart();
+    }
+
+    // Update cart UI
+    function updateCart() {
+        let cartHtml = '';
+        cart.forEach(function (item) {
+            cartHtml += `
+                <p>Product ID: ${item.productId}, Quantity: ${item.quantity}</p>
+            `;
+        });
+        $('#cartSection').html(cartHtml);
+    }
+
+    // Place order
+    $('#placeOrderButton').on('click', function () {
+        if (cart.length > 0) {
+            $.ajax({
+                url: '/order/place',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ userId: loggedInUser.id, items: cart }),
+                success: function (response) {
+                    alert('Order placed successfully');
+                    cart = []; // Empty the cart
+                    updateCart();
+                },
+                error: function (error) {
+                    alert('Error placing order');
+                }
+            });
+        } else {
+            alert('Your cart is empty!');
+        }
+    });
+</script>
+
+</body>
+</html>
